@@ -33,27 +33,27 @@ pub struct Operator {
 }
 
 pub struct Producers {
-    pub mod_hz_producer: Producer<f64>,
-    pub mod_amp_producer: Producer<f64>,
-    pub carrier_hz_producer: Producer<f64>,
-    pub carrier_amp_producer: Producer<f64>,
+    pub mod_hz: Producer<f64>,
+    pub mod_amp: Producer<f64>,
+    pub carrier_hz: Producer<f64>,
+    pub carrier_amp: Producer<f64>,
 
-    pub cutoff_producer: Producer<f64>,
-    pub resonance_producer: Producer<f64>,
-    pub peak_gain_producer: Producer<f64>,
-    pub filter_type_producer: Producer<FilterType>,
+    pub cutoff: Producer<f64>,
+    pub resonance: Producer<f64>,
+    pub peak_gain: Producer<f64>,
+    pub filter_type: Producer<FilterType>,
 
-    pub mod_env_on_off_producer: Producer<bool>,
-    pub mod_attack_producer: Producer<f64>,
-    pub mod_decay_producer: Producer<f64>,
-    pub mod_sustain_producer: Producer<f64>,
-    pub mod_release_producer: Producer<f64>,
+    pub mod_env_on_off: Producer<bool>,
+    pub mod_attack: Producer<f64>,
+    pub mod_decay: Producer<f64>,
+    pub mod_sustain: Producer<f64>,
+    pub mod_release: Producer<f64>,
 
-    pub carrier_env_on_off_producer: Producer<bool>,
-    pub carrier_attack_producer: Producer<f64>,
-    pub carrier_decay_producer: Producer<f64>,
-    pub carrier_sustain_producer: Producer<f64>,
-    pub carrier_release_producer: Producer<f64>,
+    pub carrier_env_on_off: Producer<bool>,
+    pub carrier_attack: Producer<f64>,
+    pub carrier_decay: Producer<f64>,
+    pub carrier_sustain: Producer<f64>,
+    pub carrier_release: Producer<f64>,
 }
 
 pub struct Synth {
@@ -190,24 +190,24 @@ impl Synth {
         let fm_synth_signal = Box::new(filter_dsp) as Box<dyn Signal<Frame = f64> + Send>;
 
         let producers = Producers {
-            mod_hz_producer,
-            mod_amp_producer,
-            carrier_hz_producer,
-            carrier_amp_producer,
-            cutoff_producer,
-            resonance_producer,
-            peak_gain_producer,
-            filter_type_producer,
-            mod_env_on_off_producer,
-            mod_attack_producer,
-            mod_decay_producer,
-            mod_sustain_producer,
-            mod_release_producer,
-            carrier_env_on_off_producer,
-            carrier_attack_producer,
-            carrier_decay_producer,
-            carrier_sustain_producer,
-            carrier_release_producer,
+            mod_hz: mod_hz_producer,
+            mod_amp: mod_amp_producer,
+            carrier_hz: carrier_hz_producer,
+            carrier_amp: carrier_amp_producer,
+            cutoff: cutoff_producer,
+            resonance: resonance_producer,
+            peak_gain: peak_gain_producer,
+            filter_type: filter_type_producer,
+            mod_env_on_off: mod_env_on_off_producer,
+            mod_attack: mod_attack_producer,
+            mod_decay: mod_decay_producer,
+            mod_sustain: mod_sustain_producer,
+            mod_release: mod_release_producer,
+            carrier_env_on_off: carrier_env_on_off_producer,
+            carrier_attack: carrier_attack_producer,
+            carrier_decay: carrier_decay_producer,
+            carrier_sustain: carrier_sustain_producer,
+            carrier_release: carrier_release_producer,
         };
 
         (Synth { producers }, fm_synth_signal)

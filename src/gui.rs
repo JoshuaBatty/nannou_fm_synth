@@ -74,8 +74,8 @@ pub fn update(
         .label_rgb(1.0, 1.0, 1.0)
         .set(ids.retrigger, ui)
     {
-        if producers.mod_env_on_off_producer.push(value).is_ok()
-            && producers.carrier_env_on_off_producer.push(value).is_ok()
+        if producers.mod_env_on_off.push(value).is_ok()
+            && producers.carrier_env_on_off.push(value).is_ok()
         {
             parameters.note_on_off = value;
         }
@@ -93,7 +93,7 @@ pub fn update(
         .label(&label)
         .set(ids.op1_freq, ui)
     {
-        if producers.mod_hz_producer.push(value as f64).is_ok() {
+        if producers.mod_hz.push(value as f64).is_ok() {
             parameters.op1.pitch.freq = value;
         }
     }
@@ -109,7 +109,7 @@ pub fn update(
         crate::update_frequency(
             parameters.master_frequency,
             &mut parameters.op1,
-            &mut producers.mod_hz_producer,
+            &mut producers.mod_hz,
         );
     }
 
@@ -123,7 +123,7 @@ pub fn update(
         crate::update_frequency(
             parameters.master_frequency,
             &mut parameters.op1,
-            &mut producers.mod_hz_producer,
+            &mut producers.mod_hz,
         );
     }
 
@@ -133,7 +133,7 @@ pub fn update(
         .label(&label)
         .set(ids.op1_attack, ui)
     {
-        if producers.mod_attack_producer.push(value as f64).is_ok() {
+        if producers.mod_attack.push(value as f64).is_ok() {
             parameters.op1.env.attack = value;
         }
     }
@@ -144,7 +144,7 @@ pub fn update(
         .label(&label)
         .set(ids.op1_decay, ui)
     {
-        if producers.mod_decay_producer.push(value as f64).is_ok() {
+        if producers.mod_decay.push(value as f64).is_ok() {
             parameters.op1.env.decay = value;
         }
     }
@@ -155,7 +155,7 @@ pub fn update(
         .label(&label)
         .set(ids.op1_sustain, ui)
     {
-        if producers.mod_sustain_producer.push(value as f64).is_ok() {
+        if producers.mod_sustain.push(value as f64).is_ok() {
             parameters.op1.env.sustain = value;
         }
     }
@@ -166,7 +166,7 @@ pub fn update(
         .label(&label)
         .set(ids.op1_release, ui)
     {
-        if producers.mod_release_producer.push(value as f64).is_ok() {
+        if producers.mod_release.push(value as f64).is_ok() {
             parameters.op1.env.release = value;
         }
     }
@@ -177,7 +177,7 @@ pub fn update(
         .label(&label)
         .set(ids.op1_amp, ui)
     {
-        if producers.mod_amp_producer.push(value as f64).is_ok() {
+        if producers.mod_amp.push(value as f64).is_ok() {
             parameters.op1.amp = value;
         }
     }
@@ -194,7 +194,7 @@ pub fn update(
         .label(&label)
         .set(ids.op2_freq, ui)
     {
-        if producers.carrier_hz_producer.push(value as f64).is_ok() {
+        if producers.carrier_hz.push(value as f64).is_ok() {
             parameters.op2.pitch.freq = value;
         }
     }
@@ -210,7 +210,7 @@ pub fn update(
         crate::update_frequency(
             parameters.master_frequency,
             &mut parameters.op2,
-            &mut producers.carrier_hz_producer,
+            &mut producers.carrier_hz,
         );
     }
 
@@ -224,7 +224,7 @@ pub fn update(
         crate::update_frequency(
             parameters.master_frequency,
             &mut parameters.op2,
-            &mut producers.carrier_hz_producer,
+            &mut producers.carrier_hz,
         );
     }
 
@@ -234,7 +234,7 @@ pub fn update(
         .label(&label)
         .set(ids.op2_attack, ui)
     {
-        if producers.carrier_attack_producer.push(value as f64).is_ok() {
+        if producers.carrier_attack.push(value as f64).is_ok() {
             parameters.op2.env.attack = value;
         }
     }
@@ -245,7 +245,7 @@ pub fn update(
         .label(&label)
         .set(ids.op2_decay, ui)
     {
-        if producers.carrier_decay_producer.push(value as f64).is_ok() {
+        if producers.carrier_decay.push(value as f64).is_ok() {
             parameters.op2.env.decay = value;
         }
     }
@@ -256,11 +256,7 @@ pub fn update(
         .label(&label)
         .set(ids.op2_sustain, ui)
     {
-        if producers
-            .carrier_sustain_producer
-            .push(value as f64)
-            .is_ok()
-        {
+        if producers.carrier_sustain.push(value as f64).is_ok() {
             parameters.op2.env.sustain = value;
         }
     }
@@ -271,11 +267,7 @@ pub fn update(
         .label(&label)
         .set(ids.op2_release, ui)
     {
-        if producers
-            .carrier_release_producer
-            .push(value as f64)
-            .is_ok()
-        {
+        if producers.carrier_release.push(value as f64).is_ok() {
             parameters.op2.env.release = value;
         }
     }
@@ -286,7 +278,7 @@ pub fn update(
         .label(&label)
         .set(ids.op2_amp, ui)
     {
-        if producers.carrier_amp_producer.push(value as f64).is_ok() {
+        if producers.carrier_amp.push(value as f64).is_ok() {
             parameters.op2.amp = value;
         }
     }
@@ -327,7 +319,7 @@ pub fn update(
             _ => unreachable!(),
         };
 
-        if producers.filter_type_producer.push(filter_type).is_ok() {
+        if producers.filter_type.push(filter_type).is_ok() {
             parameters.filter.filter_type = selected_idx;
         }
     }
@@ -338,7 +330,7 @@ pub fn update(
         .label(&label)
         .set(ids.filter_cutoff, ui)
     {
-        if producers.cutoff_producer.push(value as f64).is_ok() {
+        if producers.cutoff.push(value as f64).is_ok() {
             parameters.filter.cutoff = value;
         }
     }
@@ -349,7 +341,7 @@ pub fn update(
         .label(&label)
         .set(ids.filter_resonance, ui)
     {
-        if producers.resonance_producer.push(value as f64).is_ok() {
+        if producers.resonance.push(value as f64).is_ok() {
             parameters.filter.resonance = value;
         }
     }
@@ -360,7 +352,7 @@ pub fn update(
         .label(&label)
         .set(ids.filter_peak_gain, ui)
     {
-        if producers.peak_gain_producer.push(value as f64).is_ok() {
+        if producers.peak_gain.push(value as f64).is_ok() {
             parameters.filter.peak_gain = value;
         };
     }

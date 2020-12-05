@@ -165,27 +165,20 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
             let nn = convert_key_note_number(note.letter, note.octave);
             model.parameters.master_frequency = note_to_frequency(nn);
 
-        
-            model.parameters.master_frequency = COLUNDI_FREQS[random_range(0, COLUNDI_FREQS.len())];
             crate::update_frequency(
                 model.parameters.master_frequency,
                 &mut model.parameters.op1,
-                &mut model.synth.producers.mod_hz_producer,
+                &mut model.synth.producers.mod_hz,
             );
-            crate::update_frequency(
+            update_frequency(
                 model.parameters.master_frequency,
                 &mut model.parameters.op2,
-                &mut model.synth.producers.carrier_hz_producer,
+                &mut model.synth.producers.carrier_hz,
             );
 
             if !model.parameters.note_on_off {
-                if model.synth.producers.mod_env_on_off_producer.push(true).is_ok()
-                    && model
-                        .synth
-                        .producers
-                        .carrier_env_on_off_producer
-                        .push(true)
-                        .is_ok()
+                if model.synth.producers.mod_env_on_off.push(true).is_ok()
+                    && model.synth.producers.carrier_env_on_off.push(true).is_ok()
                 {
                     model.parameters.note_on_off = true;
                 }
@@ -197,13 +190,8 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
 fn key_released(_app: &App, model: &mut Model, key: Key) {
     if let Some(k) = convert_key(key) {
         let _off = model.musical_keyboard.key_released(k);
-        if model.synth.producers.mod_env_on_off_producer.push(false).is_ok()
-            && model
-                .synth
-                .producers
-                .carrier_env_on_off_producer
-                .push(false)
-                .is_ok()
+        if model.synth.producers.mod_env_on_off.push(false).is_ok()
+            && model.synth.producers.carrier_env_on_off.push(false).is_ok()
         {
             model.parameters.note_on_off = false;
         }
@@ -217,7 +205,11 @@ fn view(app: &App, model: &Model, frame: Frame) {
     model.ui.draw_to_frame(app, &frame).unwrap();
 }
 
-pub fn update_frequency(master_frequency: f32, op: &mut synth::Operator, hz_producer: &mut Producer<f64>) {
+pub fn update_frequency(
+    master_frequency: f32,
+    op: &mut synth::Operator,
+    hz_producer: &mut Producer<f64>,
+) {
     let freq = master_frequency * (op.pitch.ratio + op.pitch.ratio_offset);
     if hz_producer.push(freq as f64).is_ok() {
         op.pitch.freq = freq;
@@ -281,12 +273,3 @@ pub fn convert_key(key: Key) -> Option<kb::Key> {
     };
     Some(k)
 }
-
-
-pub const COLUNDI_FREQS: &[f32] = &[
-    33.0, 66.0, 99.0, 132.0, 165.0, 198.0, 231.0, 264.0, 297.0, 330.0, 363.0, 396.0, 429.0, 462.0, 495.0, 528.0, 33.0, 35.0625, 37.125, 39.1875, 41.25, 43.3125, 45.375, 47.4375,
-    561.0, 594.0, 627.0, 660.0, 693.0, 726.0, 759.0, 792.0, 825.0, 858.0, 891.0, 924.0, 957.0, 990.0, 1023.0, 1056.0, 49.5, 51.5625,
-    1089.0, 1122.0, 1155.0, 1188.0, 1221.0, 1254.0, 1287.0, 1320.0, 1353.0, 1386.0, 1419.0, 1452.0, 1485.0, 1518.0, 1551.0, 1584.0, 53.625, 
-    1617.0, 1650.0, 1683.0, 1716.0, 1749.0, 1782.0, 1815.0, 1848.0, 1881.0, 1914.0, 1947.0, 1980.0, 2013.0, 2046.0, 2079.0, 2112.0, 55.6875, 57.75, 59.8125, 61.875, 63.9375,
-    2145.0, 2178.0, 2211.0, 2244.0, 2277.0, 2310.0, 2343.0, 2376.0, 2409.0, 2442.0, 2475.0, 2508.0, 2541.0, 2574.0, 2607.0, 2640.0, 66.0, 70.125, 74.25, 78.375, 82.5, 86.625, 90.75, 99.0, 103.125,
-];

@@ -5,10 +5,8 @@ widget_ids! {
     pub struct Ids {
         fm_text,
         master_volume,
-        retrigger,
 
         op1_text,
-        op1_freq,
         op1_ratio,
         op1_ratio_offset,
         op1_attack,
@@ -18,7 +16,6 @@ widget_ids! {
         op1_amp,
 
         op2_text,
-        op2_freq,
         op2_ratio,
         op2_ratio_offset,
         op2_attack,
@@ -45,8 +42,9 @@ pub fn update(
         widget::Slider::new(val, min, max)
             .w_h(200.0, 30.0)
             .label_font_size(15)
-            .rgb(0.3, 0.3, 0.3)
-            .label_rgb(1.0, 1.0, 1.0)
+            .rgb(0.305, 0.956, 0.6)
+            .label_rgb(0.0, 0.0, 0.0)
+            .border_color(nannou::ui::color::rgb(0.635, 0.635, 0.635))
             .border(0.0)
     }
 
@@ -65,38 +63,11 @@ pub fn update(
         parameters.master_volume = value;
     }
 
-    for value in widget::Toggle::new(parameters.note_on_off)
-        .down(4.0)
-        .label("RETRIGGER")
-        .w_h(200.0, 30.0)
-        .label_font_size(15)
-        .rgb(0.3, 0.3, 0.3)
-        .label_rgb(1.0, 1.0, 1.0)
-        .set(ids.retrigger, ui)
-    {
-        if producers.mod_env_on_off.push(value).is_ok()
-            && producers.carrier_env_on_off.push(value).is_ok()
-        {
-            parameters.note_on_off = value;
-        }
-    }
-
     widget::Text::new("OPERATOR 1")
         .down(20.0)
         .color(color::WHITE)
         .font_size(16)
         .set(ids.op1_text, ui);
-
-    let label = format!("Freq: {:.2}", parameters.op1.pitch.freq);
-    for value in slider(parameters.op1.pitch.freq, 0.0, 12543.855)
-        .down(4.0)
-        .label(&label)
-        .set(ids.op1_freq, ui)
-    {
-        if producers.mod_hz.push(value as f64).is_ok() {
-            parameters.op1.pitch.freq = value;
-        }
-    }
 
     let label = format!("Ratio: {:.2}", parameters.op1.pitch.ratio);
     for value in slider(parameters.op1.pitch.ratio, 0.0, 35.0)
@@ -106,11 +77,13 @@ pub fn update(
     {
         let idx = value.ceil() as usize;
         parameters.op1.pitch.ratio = crate::synth::MODULATOR_RATIOS[idx];
-        crate::update_frequency(
-            parameters.master_frequency,
-            &mut parameters.op1,
-            &mut producers.mod_hz,
-        );
+
+        if let Ok(_) = producers
+            .mod_hz
+            .push(crate::calculate_operator_frequency(
+                parameters.master_frequency,
+                &parameters.op1,
+            ) as f64) {}
     }
 
     let label = format!("Ratio Offset: {:.2}", parameters.op1.pitch.ratio_offset);
@@ -120,11 +93,13 @@ pub fn update(
         .set(ids.op1_ratio_offset, ui)
     {
         parameters.op1.pitch.ratio_offset = value;
-        crate::update_frequency(
-            parameters.master_frequency,
-            &mut parameters.op1,
-            &mut producers.mod_hz,
-        );
+
+        if let Ok(_) = producers
+            .mod_hz
+            .push(crate::calculate_operator_frequency(
+                parameters.master_frequency,
+                &parameters.op1,
+            ) as f64) {}
     }
 
     let label = format!("Attack: {:.2}", parameters.op1.env.attack);
@@ -188,17 +163,6 @@ pub fn update(
         .font_size(16)
         .set(ids.op2_text, ui);
 
-    let label = format!("Freq: {:.2}", parameters.op2.pitch.freq);
-    for value in slider(parameters.op2.pitch.freq, 0.0, 12543.855)
-        .down(4.0)
-        .label(&label)
-        .set(ids.op2_freq, ui)
-    {
-        if producers.carrier_hz.push(value as f64).is_ok() {
-            parameters.op2.pitch.freq = value;
-        }
-    }
-
     let label = format!("Ratio: {:.2}", parameters.op2.pitch.ratio);
     for value in slider(parameters.op2.pitch.ratio, 0.0, 18.0)
         .down(4.0)
@@ -207,11 +171,13 @@ pub fn update(
     {
         let idx = value.ceil() as usize;
         parameters.op2.pitch.ratio = crate::synth::CARRIER_RATIOS[idx];
-        crate::update_frequency(
-            parameters.master_frequency,
-            &mut parameters.op2,
-            &mut producers.carrier_hz,
-        );
+
+        if let Ok(_) = producers
+            .carrier_hz
+            .push(crate::calculate_operator_frequency(
+                parameters.master_frequency,
+                &parameters.op2,
+            ) as f64) {}
     }
 
     let label = format!("Ratio Offset: {:.2}", parameters.op2.pitch.ratio_offset);
@@ -221,11 +187,13 @@ pub fn update(
         .set(ids.op2_ratio_offset, ui)
     {
         parameters.op2.pitch.ratio_offset = value;
-        crate::update_frequency(
-            parameters.master_frequency,
-            &mut parameters.op2,
-            &mut producers.carrier_hz,
-        );
+
+        if let Ok(_) = producers
+            .carrier_hz
+            .push(crate::calculate_operator_frequency(
+                parameters.master_frequency,
+                &parameters.op2,
+            ) as f64) {}
     }
 
     let label = format!("Attack: {:.2}", parameters.op2.env.attack);

@@ -5,7 +5,6 @@ use nannou_audio::Buffer;
 
 use dasp::signal::Signal;
 use musical_keyboard as kb;
-use ringbuf::Producer;
 
 mod adsr;
 mod biquad;
@@ -42,7 +41,7 @@ struct Audio {
 fn model(app: &App) -> Model {
     // Create a window to receive key pressed events.
     app.new_window()
-        .size(240, 960)
+        .size(240, 820)
         .key_pressed(key_pressed)
         .key_released(key_released)
         .view(view)
@@ -51,7 +50,6 @@ fn model(app: &App) -> Model {
 
     let op1 = synth::Operator {
         pitch: synth::Pitch {
-            freq: 100.0,
             ratio: 3.5,
             ratio_offset: 0.0,
         },
@@ -66,7 +64,6 @@ fn model(app: &App) -> Model {
 
     let op2 = synth::Operator {
         pitch: synth::Pitch {
-            freq: 32.7,
             ratio: 0.25,
             ratio_offset: 0.0,
         },
@@ -86,9 +83,11 @@ fn model(app: &App) -> Model {
         peak_gain: 0.0,
     };
 
+    let master_frequency = 100.0;
     let master_volume = 0.8;
     let sample_rate = 44100.0;
-    let (synth, synth_signal) = synth::Synth::new(sample_rate, &op1, &op2, &filter);
+    let (synth, synth_signal) =
+        synth::Synth::new(sample_rate, master_frequency, &op1, &op2, &filter);
 
     let audio_model = Audio {
         master_volume,
@@ -104,7 +103,7 @@ fn model(app: &App) -> Model {
         .unwrap();
 
     let parameters = Parameters {
-        master_frequency: op1.pitch.freq,
+        master_frequency,
         op1,
         op2,
         filter,
@@ -164,17 +163,20 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
         if let Some(note) = model.musical_keyboard.key_pressed(k) {
             let nn = convert_key_note_number(note.letter, note.octave);
             model.parameters.master_frequency = note_to_frequency(nn);
+            
+            if let Ok(_) = model.synth.producers
+                .mod_hz
+                .push(crate::calculate_operator_frequency(
+                    model.parameters.master_frequency,
+                    &model.parameters.op1,
+                ) as f64) {}
 
-            crate::update_frequency(
-                model.parameters.master_frequency,
-                &mut model.parameters.op1,
-                &mut model.synth.producers.mod_hz,
-            );
-            update_frequency(
-                model.parameters.master_frequency,
-                &mut model.parameters.op2,
-                &mut model.synth.producers.carrier_hz,
-            );
+            if let Ok(_) = model.synth.producers
+                .carrier_hz
+                .push(crate::calculate_operator_frequency(
+                    model.parameters.master_frequency,
+                    &model.parameters.op2,
+                ) as f64) {}
 
             if !model.parameters.note_on_off {
                 if model.synth.producers.mod_env_on_off.push(true).is_ok()
@@ -199,26 +201,19 @@ fn key_released(_app: &App, model: &mut Model, key: Key) {
 }
 
 fn view(app: &App, model: &Model, frame: Frame) {
-    frame.clear(GRAY);
+    frame.clear(rgb(0.1,0.1,0.1));
 
     // Draw the state of the `Ui` to the frame.
     model.ui.draw_to_frame(app, &frame).unwrap();
 }
 
-pub fn update_frequency(
-    master_frequency: f32,
-    op: &mut synth::Operator,
-    hz_producer: &mut Producer<f64>,
-) {
-    let freq = master_frequency * (op.pitch.ratio + op.pitch.ratio_offset);
-    if hz_producer.push(freq as f64).is_ok() {
-        op.pitch.freq = freq;
-    }
+pub fn calculate_operator_frequency(master_frequency: f32, op: &synth::Operator) -> f32 {
+    master_frequency * (op.pitch.ratio + op.pitch.ratio_offset)
 }
 
 pub fn note_to_frequency(n: i32) -> f32 {
-    let base_a4 = 440.0; // A4 = 440Hz
-    base_a4 * 2.0.powf((n as f32 - 49.0) / 12.0)
+    const BASE_A4: f32 = 440.0; // A4 = 440Hz
+    BASE_A4 * 2.0.powf((n as f32 - 49.0) / 12.0)
 }
 
 pub fn convert_key_note_number(key: kb::Letter, octave: i32) -> i32 {

@@ -20,7 +20,6 @@ pub struct Envelope {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Pitch {
-    pub freq: f32,
     pub ratio: f32,
     pub ratio_offset: f32,
 }
@@ -63,6 +62,7 @@ pub struct Synth {
 impl Synth {
     pub fn new(
         sample_rate: f64,
+        master_frequency: f32,
         op1: &Operator,
         op2: &Operator,
         filter: &Filter,
@@ -86,15 +86,16 @@ impl Synth {
         let (mut mod_release_producer, mod_release_cons) = mod_release.split();
         mod_release_producer.push(op1.env.release as f64).unwrap();
 
+        let op1_frequency = crate::calculate_operator_frequency(master_frequency, &op1);
         let mod_hz = RingBuffer::<f64>::new(1);
         let (mut mod_hz_producer, mod_hz_cons) = mod_hz.split();
-        mod_hz_producer.push(op1.pitch.freq as f64).unwrap();
+        mod_hz_producer.push(op1_frequency as f64).unwrap();
 
         let mod_amp = RingBuffer::<f64>::new(1);
         let (mut mod_amp_producer, mod_amp_cons) = mod_amp.split();
         mod_amp_producer.push(op1.amp as f64).unwrap();
 
-        let modulator_hz_signal = Param::new(op1.pitch.freq as f64, mod_hz_cons);
+        let modulator_hz_signal = Param::new(op1_frequency as f64, mod_hz_cons);
         let modulator_amp_signal = Param::new(op1.amp as f64, mod_amp_cons);
 
         let modulator_envelope = Adsr::new(
@@ -144,15 +145,16 @@ impl Synth {
             carrier_env_on_off_cons,
         );
 
+        let op2_frequency = crate::calculate_operator_frequency(master_frequency, &op2);
         let carrier_hz = RingBuffer::<f64>::new(1);
         let (mut carrier_hz_producer, carrier_hz_cons) = carrier_hz.split();
-        carrier_hz_producer.push(op2.pitch.freq as f64).unwrap();
+        carrier_hz_producer.push(op2_frequency as f64).unwrap();
 
         let carrier_amp = RingBuffer::<f64>::new(1);
         let (mut carrier_amp_producer, carrier_amp_cons) = carrier_amp.split();
         carrier_amp_producer.push(op2.amp as f64).unwrap();
 
-        let carrier_hz_signal = Param::new(op2.pitch.freq as f64, carrier_hz_cons);
+        let carrier_hz_signal = Param::new(op2_frequency as f64, carrier_hz_cons);
         let carrier_amp_signal = Param::new(op2.amp as f64, carrier_amp_cons);
 
         let final_hz_signal = carrier_hz_signal.add_amp(modulator);

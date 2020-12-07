@@ -9,6 +9,6 @@ edition = "2018"
 [dependencies]
 nannou_audio = { git = "https://github.com/nannou-org/nannou", branch = "master" }
 nannou = "0.15"
-dasp = { version = "0.11", features = ["envelope", "envelope-peak", "peak", "signal", "interpolate", "interpolate-linear"] }
+dasp = { version = "0.11", features = ["signal"] }
 ringbuf = "0.2.2"
 musical_keyboard = "0.6.0"

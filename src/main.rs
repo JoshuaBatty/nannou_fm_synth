@@ -4,7 +4,7 @@ use nannou_audio as audio;
 use nannou_audio::Buffer;
 
 use dasp::signal::Signal;
-use musical_keyboard as kb;
+use musical_keyboard as mkb;
 
 mod adsr;
 mod biquad;
@@ -29,8 +29,8 @@ struct Model {
     ui: Ui,
     ids: gui::Ids,
     parameters: Parameters,
-    synth: synth::Synth,
-    musical_keyboard: kb::MusicalKeyboard,
+    synth_control: synth::Synth,
+    musical_keyboard: mkb::MusicalKeyboard,
 }
 
 struct Audio {
@@ -41,7 +41,7 @@ struct Audio {
 fn model(app: &App) -> Model {
     // Create a window to receive key pressed events.
     app.new_window()
-        .size(240, 820)
+        .size(240, 890)
         .key_pressed(key_pressed)
         .key_released(key_released)
         .view(view)
@@ -86,7 +86,7 @@ fn model(app: &App) -> Model {
     let master_frequency = 100.0;
     let master_volume = 0.8;
     let sample_rate = 44100.0;
-    let (synth, synth_signal) =
+    let (synth_control, synth_signal) =
         synth::Synth::new(sample_rate, master_frequency, &op1, &op2, &filter);
 
     let audio_model = Audio {
@@ -111,7 +111,7 @@ fn model(app: &App) -> Model {
         master_volume,
     };
 
-    let musical_keyboard = kb::MusicalKeyboard::default();
+    let musical_keyboard = mkb::MusicalKeyboard::default();
 
     // Create the UI.
     let mut ui = app.new_ui().build().unwrap();
@@ -124,7 +124,7 @@ fn model(app: &App) -> Model {
         ui,
         ids,
         parameters,
-        synth,
+        synth_control,
         musical_keyboard,
     }
 }
@@ -146,7 +146,7 @@ fn update(_app: &App, model: &mut Model, _update: Update) {
         ui,
         &mut model.ids,
         &mut model.parameters,
-        &mut model.synth.producers,
+        &mut model.synth_control.producers,
     );
 
     let volume = model.parameters.master_volume.clone();
@@ -164,14 +164,14 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
             let nn = convert_key_note_number(note.letter, note.octave);
             model.parameters.master_frequency = note_to_frequency(nn);
             
-            if let Ok(_) = model.synth.producers
+            if let Ok(_) = model.synth_control.producers
                 .mod_hz
                 .push(crate::calculate_operator_frequency(
                     model.parameters.master_frequency,
                     &model.parameters.op1,
                 ) as f64) {}
 
-            if let Ok(_) = model.synth.producers
+            if let Ok(_) = model.synth_control.producers
                 .carrier_hz
                 .push(crate::calculate_operator_frequency(
                     model.parameters.master_frequency,
@@ -179,8 +179,8 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
                 ) as f64) {}
 
             if !model.parameters.note_on_off {
-                if model.synth.producers.mod_env_on_off.push(true).is_ok()
-                    && model.synth.producers.carrier_env_on_off.push(true).is_ok()
+                if model.synth_control.producers.mod_env_on_off.push(true).is_ok()
+                    && model.synth_control.producers.carrier_env_on_off.push(true).is_ok()
                 {
                     model.parameters.note_on_off = true;
                 }
@@ -192,8 +192,8 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
 fn key_released(_app: &App, model: &mut Model, key: Key) {
     if let Some(k) = convert_key(key) {
         let _off = model.musical_keyboard.key_released(k);
-        if model.synth.producers.mod_env_on_off.push(false).is_ok()
-            && model.synth.producers.carrier_env_on_off.push(false).is_ok()
+        if model.synth_control.producers.mod_env_on_off.push(false).is_ok()
+            && model.synth_control.producers.carrier_env_on_off.push(false).is_ok()
         {
             model.parameters.note_on_off = false;
         }
@@ -216,54 +216,54 @@ pub fn note_to_frequency(n: i32) -> f32 {
     BASE_A4 * 2.0.powf((n as f32 - 49.0) / 12.0)
 }
 
-pub fn convert_key_note_number(key: kb::Letter, octave: i32) -> i32 {
+pub fn convert_key_note_number(key: mkb::Letter, octave: i32) -> i32 {
     let n = match key {
-        kb::Letter::C => 1,
-        kb::Letter::Csh => 2,
-        kb::Letter::Db => 2,
-        kb::Letter::D => 3,
-        kb::Letter::Dsh => 4,
-        kb::Letter::Eb => 4,
-        kb::Letter::E => 5,
-        kb::Letter::F => 6,
-        kb::Letter::Fsh => 7,
-        kb::Letter::Gb => 7,
-        kb::Letter::G => 8,
-        kb::Letter::Gsh => 9,
-        kb::Letter::Ab => 9,
-        kb::Letter::A => 10,
-        kb::Letter::Ash => 11,
-        kb::Letter::Bb => 11,
-        kb::Letter::B => 12,
+        mkb::Letter::C => 1,
+        mkb::Letter::Csh => 2,
+        mkb::Letter::Db => 2,
+        mkb::Letter::D => 3,
+        mkb::Letter::Dsh => 4,
+        mkb::Letter::Eb => 4,
+        mkb::Letter::E => 5,
+        mkb::Letter::F => 6,
+        mkb::Letter::Fsh => 7,
+        mkb::Letter::Gb => 7,
+        mkb::Letter::G => 8,
+        mkb::Letter::Gsh => 9,
+        mkb::Letter::Ab => 9,
+        mkb::Letter::A => 10,
+        mkb::Letter::Ash => 11,
+        mkb::Letter::Bb => 11,
+        mkb::Letter::B => 12,
     };
     let offset = 3;
     (12 * octave) + n + offset
 }
 
-pub fn convert_key(key: Key) -> Option<kb::Key> {
+pub fn convert_key(key: Key) -> Option<mkb::Key> {
     let k = match key {
-        Key::A => kb::Key::A,
-        Key::W => kb::Key::W,
-        Key::S => kb::Key::S,
-        Key::E => kb::Key::E,
-        Key::D => kb::Key::D,
-        Key::F => kb::Key::F,
-        Key::T => kb::Key::T,
-        Key::G => kb::Key::G,
-        Key::Y => kb::Key::Y,
-        Key::H => kb::Key::H,
-        Key::U => kb::Key::U,
-        Key::J => kb::Key::J,
-        Key::K => kb::Key::K,
-        Key::O => kb::Key::O,
-        Key::L => kb::Key::L,
-        Key::P => kb::Key::P,
-        Key::Semicolon => kb::Key::Semicolon,
-        Key::Apostrophe => kb::Key::Quote,
-        Key::Z => kb::Key::Z,
-        Key::X => kb::Key::X,
-        Key::C => kb::Key::C,
-        Key::V => kb::Key::V,
+        Key::A => mkb::Key::A,
+        Key::W => mkb::Key::W,
+        Key::S => mkb::Key::S,
+        Key::E => mkb::Key::E,
+        Key::D => mkb::Key::D,
+        Key::F => mkb::Key::F,
+        Key::T => mkb::Key::T,
+        Key::G => mkb::Key::G,
+        Key::Y => mkb::Key::Y,
+        Key::H => mkb::Key::H,
+        Key::U => mkb::Key::U,
+        Key::J => mkb::Key::J,
+        Key::K => mkb::Key::K,
+        Key::O => mkb::Key::O,
+        Key::L => mkb::Key::L,
+        Key::P => mkb::Key::P,
+        Key::Semicolon => mkb::Key::Semicolon,
+        Key::Apostrophe => mkb::Key::Quote,
+        Key::Z => mkb::Key::Z,
+        Key::X => mkb::Key::X,
+        Key::C => mkb::Key::C,
+        Key::V => mkb::Key::V,
         _ => return None,
     };
     Some(k)

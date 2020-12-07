@@ -1,8 +1,10 @@
 use crate::biquad::FilterType;
 use nannou::ui::prelude::*;
+use std::fmt::Write;
 
 widget_ids! {
     pub struct Ids {
+        instructions_text,
         fm_text,
         master_volume,
 
@@ -63,7 +65,7 @@ pub fn update(
         parameters.master_volume = value;
     }
 
-    widget::Text::new("OPERATOR 1")
+    widget::Text::new("OP1: MODULATOR")
         .down(20.0)
         .color(color::WHITE)
         .font_size(16)
@@ -157,7 +159,7 @@ pub fn update(
         }
     }
 
-    widget::Text::new("OPERATOR 2")
+    widget::Text::new("OP2: CARRIER")
         .down(20.0)
         .color(color::WHITE)
         .font_size(16)
@@ -251,7 +253,7 @@ pub fn update(
         }
     }
 
-    widget::Text::new("Filter")
+    widget::Text::new("FILTER")
         .down(20.0)
         .color(color::WHITE)
         .font_size(16)
@@ -271,6 +273,7 @@ pub fn update(
         widget::DropDownList::new(&filters, Some(parameters.filter.filter_type))
             .down(4.0)
             .w_h(200.0, 30.0)
+            .rgb(0.305, 0.956, 0.6)
             .label("Filter Types")
             .label_font_size(15)
             .set(ids.filter_type, ui)
@@ -324,4 +327,16 @@ pub fn update(
             parameters.filter.peak_gain = value;
         };
     }
+
+    let mut instructions = String::new();
+    writeln!(&mut instructions, "Use your keyboard to trigger notes").unwrap();
+    writeln!(&mut instructions, "").unwrap();
+    writeln!(&mut instructions, "Press Z and X to change octaves").unwrap();
+
+    widget::Text::new(&instructions)
+        .font_size(12)
+        .down(20.0)
+        .color(nannou::ui::color::WHITE)
+        .left_justify()
+        .set(ids.instructions_text, ui);
 }

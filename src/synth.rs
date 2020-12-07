@@ -32,9 +32,7 @@ pub struct Operator {
 }
 
 pub struct Producers {
-    pub mod_hz: Producer<f64>,
     pub mod_amp: Producer<f64>,
-    pub carrier_hz: Producer<f64>,
     pub carrier_amp: Producer<f64>,
 
     pub cutoff: Producer<f64>,
@@ -42,6 +40,9 @@ pub struct Producers {
     pub peak_gain: Producer<f64>,
     pub filter_type: Producer<FilterType>,
 
+    pub mod_hz: Producer<f64>,
+    pub carrier_hz: Producer<f64>,
+    
     pub mod_env_on_off: Producer<bool>,
     pub mod_attack: Producer<f64>,
     pub mod_decay: Producer<f64>,
